@@ -3,28 +3,34 @@
 ## Project Overview
 
 This is a personal portfolio website - a "Realtime Orrery" (solar system visualization). It's a static HTML file with:
-- Tailwind CSS via CDN
+- Tailwind CSS (Production CLI build)
 - Vanilla JavaScript for canvas animations
 - Custom CSS embedded in `<style>` tags
-- No build system, no frameworks
+- Simple build system for Tailwind CSS
 
 ---
 
 ## Commands
 
 ### Running the Project
-Since this is a static HTML file, simply open `index.html` in a browser or serve it:
+Since this uses Tailwind CLI, you need to build the CSS or use watch mode:
 
 ```bash
-# Using Python's built-in server
-python3 -m http.server 8000
+# Install dependencies
+npm install
 
-# Using Node.js
+# Build CSS once
+npm run build:css
+
+# Watch mode for development
+npm run watch:css
+
+# Serving the site
 npx serve .
 ```
 
-### No Build/Lint/Tests
-This is a simple static site with no build process, linter, or test suite.
+### Build Process
+The project uses Tailwind CLI version 3. It scans `index.html` and outputs to `dist/output.css`.
 
 ---
 
@@ -122,7 +128,7 @@ All code (HTML, CSS, JavaScript) lives in `index.html`. No splitting across file
 ## External Resources
 
 ### CDN Dependencies
-- Tailwind CSS: `https://cdn.tailwindcss.com`
+- Tailwind CSS: Production build (no longer using Play CDN)
 - Google Fonts: Inter, Orbitron
 
 ### External Images
