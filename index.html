@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PH_OS | REALTIME_ORRERY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00f3ff;
+            --bg-dark: #020204;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-dark);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .font-mono-sci {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 0.25em;
+            font-size: 10px;
+        }
+
+        /* 背景 Canvas */
+        #solar-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at center, #0a0c14 0%, #020204 100%);
+        }
+
+        /* UI 观察窗口 */
+        .viewfinder {
+            position: fixed;
+            inset: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .viewfinder-corner {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+        }
+
+        /* 顶部中央时钟 */
+        .center-clock {
+            position: fixed;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        /* 行星 HUD 信息 */
+        #planet-hud {
+            position: fixed;
+            pointer-events: none;
+            z-index: 200;
+            display: none;
+            width: 240px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .hud-content {
+            background: rgba(0, 243, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            padding: 15px;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
+            position: relative;
+        }
+
+        .hud-content::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--accent);
+        }
+
+        /* 数据卡片 */
+        .data-card {
+            background: rgba(8, 10, 15, 0.4);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(0, 243, 255, 0.1);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .data-card:hover {
+            background: rgba(8, 10, 15, 0.6);
+            border-left: 1px solid var(--accent);
+            transform: translateX(4px);
+        }
+
+        /* 图片容器与 Hover 放大效果 */
+        .photo-frame {
+            position: relative;
+            aspect-ratio: 4/5;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #000;
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(80%) brightness(0.6);
+            transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .photo-frame:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 35px rgba(0, 243, 255, 0.2);
+            z-index: 10;
+        }
+
+        .photo-frame:hover img {
+            filter: grayscale(0%) brightness(1);
+            transform: scale(1.2); /* 增强放大效果 */
+        }
+
+        .photo-label {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1px 4px;
+            font-size: 7px;
+            color: var(--accent);
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            z-index: 5;
+        }
+
+        /* 背景水印 */
+        .hidden-watermark {
+            position: fixed;
+            bottom: 15%;
+            left: 5%;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 80px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.012);
+            pointer-events: none;
+            z-index: -2;
+            text-transform: uppercase;
+            letter-spacing: 0.5em;
+        }
+
+        /* UI 隐藏切换 */
+        .ui-panel {
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 1;
+        }
+
+        .ui-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transform: translateY(10px);
+        }
+        
+        #esc-hint {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--accent);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .friend-link {
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .friend-link:hover {
+            color: var(--accent);
+            text-shadow: 0 0 8px var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="solar-canvas"></canvas>
+    
+    <div class="hidden-watermark">DAVID HAN</div>
+
+    <div class="center-clock">
+        <div id="main-time" class="font-mono-sci text-xl text-white/90">00:00:00</div>
+        <div id="main-date" class="text-[9px] opacity-30 tracking-[0.4em] uppercase mt-1">YEAR_MONTH_DAY</div>
+        <div id="esc-hint" class="font-mono-sci">IMMERSIVE_MODE // PRESS ESC TO EXIT</div>
+    </div>
+
+    <!-- 星球信息 HUD -->
+    <div id="planet-hud">
+        <div class="hud-content">
+            <div id="hud-name" class="font-mono-sci text-cyan-400 text-sm mb-1">PLANET_NAME</div>
+            <div class="h-[1px] w-full bg-cyan-400/20 mb-2"></div>
+            <div id="hud-desc" class="text-[10px] leading-relaxed text-white/70 italic font-light">Loading telemetry...</div>
+            <div class="mt-3 flex justify-between items-center opacity-40 text-[8px] font-mono-sci">
+                <span>ORBIT_LOCKED</span>
+                <span>SECURED</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI 框架 -->
+    <div class="viewfinder ui-panel">
+        <div class="viewfinder-corner top-0 left-0 border-r-0 border-b-0"></div>
+        <div class="viewfinder-corner top-0 right-0 border-l-0 border-b-0"></div>
+        <div class="viewfinder-corner bottom-0 left-0 border-r-0 border-t-0"></div>
+        <div class="viewfinder-corner bottom-0 right-0 border-l-0 border-t-0"></div>
+        <div class="absolute top-1/2 left-0 w-full h-[0.5px] bg-white/5"></div>
+        <div class="absolute left-1/2 top-0 h-full w-[0.5px] bg-white/5"></div>
+    </div>
+
+    <div class="relative z-10 h-screen w-screen p-10 md:p-14 flex flex-col justify-between pointer-events-none">
+        
+        <header class="flex justify-between items-start pointer-events-auto ui-panel">
+            <div class="space-y-1">
+                <div class="font-mono-sci text-cyan-400 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                    SYNC_STATUS: J2000_EPOCH
+                </div>
+                <div class="text-[9px] opacity-20 uppercase tracking-[0.3em]">Heliocentric Perspective Console</div>
+            </div>
+            <div class="text-right space-y-1">
+                <div class="font-mono-sci uppercase text-white/60">OBSERVATION_MODE: TOP_DOWN</div>
+                <div class="text-[9px] opacity-20 tracking-widest" id="tz-info">LOCAL_TIMEZONE</div>
+            </div>
+        </header>
+
+        <div class="flex flex-col md:flex-row items-end gap-10 pointer-events-auto">
+            
+            <!-- 人生日志 (5 to 1 逆序) -->
+            <div class="w-full md:w-80 space-y-3 ui-panel">
+                <div class="text-[8px] font-mono-sci opacity-30 mb-2 tracking-widest">// MISSION_CHRONICLES</div>
+                
+                <div class="data-card p-4">
+                    <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.05_WEST_COAST_ODYSSEY</div>
+                    <p class="text-[10px] leading-relaxed opacity-40 font-light">
+                        Solo trip through the western 3 states. Navigated CA, OR, and WA using Tesla Model Y 2026. Captured the essence of the Pacific coastline through precision landscape data.
+                    </p>
+                </div>
+
+                <div class="data-card p-4">
+                    <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.04_NORTH_AMERICAN_BASE</div>
+                    <p class="text-[10px] leading-relaxed opacity-40 font-light">
+                        Deployment finalized: Move to USA. Established a permanent operational node for transcontinental surveys and technological research.
+                    </p>
+                </div>
+
+                <div class="data-card p-4">
+                    <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.03_GENESIS_PROTOCOL</div>
+                    <p class="text-[10px] leading-relaxed opacity-40 font-light">
+                        Biological unit expansion: Welcomed a lovely son into the exploration fleet. Recalibrating mission priorities for a multi-generational journey.
+                    </p>
+                </div>
+
+                <div class="data-card p-4">
+                    <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.02_RHYTHM_PROTOCOL</div>
+                    <p class="text-[10px] leading-relaxed opacity-40 font-light">
+                        Initiated Musical.ly protocol. Architected the core interface of a global synchronization network, redefining social rhythm and connectivity.
+                    </p>
+                </div>
+
+                <div class="data-card p-4">
+                    <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.01_ETERNAL_ALLIANCE</div>
+                    <p class="text-[10px] leading-relaxed opacity-40 font-light">
+                        Core alliance formed: Marry my lovely wife. Synchronized trajectories to navigate the complexities of the terrestrial and celestial realms together.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 照片网格 -->
+            <div class="flex-grow grid grid-cols-2 lg:grid-cols-4 gap-2 w-full max-w-4xl ui-panel">
+                <div class="photo-frame">
+                    <img src="https://photos.app.goo.gl/td4eQm32ek73Q1c3A" alt="Photo 1">
+                    <div class="photo-label font-mono-sci">DATA_REF_01</div>
+                </div>
+                <div class="photo-frame">
+                    <img src="https://photos.app.goo.gl/UAgfwx3E2u8DmbnW6" alt="Photo 2">
+                    <div class="photo-label font-mono-sci">DATA_REF_02</div>
+                </div>
+                <div class="photo-frame">
+                    <img src="https://photos.app.goo.gl/ptZBUymb8aNSVj7r7" alt="Photo 3">
+                    <div class="photo-label font-mono-sci">DATA_REF_03</div>
+                </div>
+                <div class="photo-frame">
+                    <img src="https://photos.app.goo.gl/pocba8nAAVkf6XJj7" alt="Photo 4">
+                    <div class="photo-label font-mono-sci">DATA_REF_04</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="flex justify-between items-end pointer-events-auto ui-panel">
+            <div class="space-y-1">
+                <div class="text-[8px] font-mono-sci text-cyan-400/40 uppercase">Hardware_Inventory</div>
+                <div class="text-[9px] font-light opacity-20 flex gap-3 tracking-tighter uppercase mb-2">
+                    <span>Osprey Kestrel 38</span>
+                    <span>/</span>
+                    <span>Tesla M-Y Ecosystem</span>
+                    <span>/</span>
+                    <span>High-Precision Optics</span>
+                </div>
+                <!-- 友情链接 -->
+                <div class="flex items-center gap-4 text-[9px] font-mono-sci opacity-40">
+                    <span class="opacity-50">FRIEND_NODES:</span>
+                    <a href="https://dan.htpu.net" target="_blank" class="friend-link">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Z"/><path d="M8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><path d="M15.5 17a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><path d="m14 8-1.5 2"/><path d="m11.5 14-1.5 2"/></svg>
+                        DANDAN
+                    </a>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-[7px] font-mono-sci opacity-10 tracking-[0.5em] mb-1">OWNER_AUTH: DAVID_HAN</div>
+                <div class="font-mono-sci text-[10px] tracking-widest text-white/80">TERMINAL_ID: <span id="uid" class="text-cyan-400"></span></div>
+                <div class="text-[8px] opacity-10 mt-1 uppercase tracking-widest">Keplerian Elements Sync • Perspective Protocol 2026</div>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('solar-canvas');
+        const ctx = canvas.getContext('2d');
+        const timeEl = document.getElementById('main-time');
+        const dateEl = document.getElementById('main-date');
+        const tzEl = document.getElementById('tz-info');
+        const planetHud = document.getElementById('planet-hud');
+        const hudName = document.getElementById('hud-name');
+        const hudDesc = document.getElementById('hud-desc');
+        const escHint = document.getElementById('esc-hint');
+        
+        let width, height;
+        let mouse = { x: -1000, y: -1000 };
+        let activePlanet = null;
+        let isUiHidden = false;
+
+        // 星球配置
+        const planets = [
+            { name: "Mercury", dist: 60, radius: 1.5, period: 88, color: "#8d9196", desc: "The smallest planet and closest to the Sun. It experiences extreme temperature fluctuations." },
+            { name: "Venus", dist: 90, radius: 3.5, period: 224.7, color: "#e3bb76", desc: "Earth's twin in size, trapped in a runaway greenhouse effect with a toxic atmosphere." },
+            { name: "Earth", dist: 130, radius: 3.8, period: 365.25, color: "#2b82c9", desc: "Our home world. The only planet known to harbor life, with vast oceans of liquid water.", moons: [{ dist: 8, radius: 0.8, period: 27.3, color: "#ccc" }] },
+            { name: "Mars", dist: 180, radius: 2.2, period: 687, color: "#e27b58", desc: "The Red Planet. Home to the solar system's tallest volcano, Olympus Mons." },
+            { name: "Jupiter", dist: 280, radius: 9, period: 4333, color: "#d39c7e", desc: "The king of planets. A gas giant with a Great Red Spot storm larger than Earth itself." },
+            { name: "Saturn", dist: 380, radius: 7.5, period: 10759, color: "#c5ab6e", desc: "Famous for its dazzling ring system, this gas giant is the second-largest planet.", rings: true },
+            { name: "Uranus", dist: 480, radius: 5, period: 30687, color: "#b5e1e1", desc: "An ice giant with a unique 98-degree tilt, rotating on its side relative to the Sun." },
+            { name: "Neptune", dist: 570, radius: 4.8, period: 60190, color: "#3e54e8", desc: "The most distant major planet, whipped by supersonic winds in a cold, dark void." }
+        ];
+
+        const kuiperBelt = [];
+        for(let i=0; i<1200; i++) {
+            kuiperBelt.push({
+                dist: 620 + Math.random() * 100,
+                angle: Math.random() * Math.PI * 2,
+                speed: (Math.random() * 0.00005) + 0.00001,
+                size: Math.random() * 1.2
+            });
+        }
+
+        function init() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            document.getElementById('uid').innerText = Math.random().toString(16).slice(2, 10).toUpperCase();
+            tzEl.innerText = Intl.DateTimeFormat().resolvedOptions().timeZone.replace('_', ' ').toUpperCase();
+        }
+
+        // ESC 切换
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                isUiHidden = !isUiHidden;
+                document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
+                escHint.style.opacity = isUiHidden ? "0.3" : "0";
+            }
+        });
+
+        function updateClock() {
+            const d = new Date();
+            timeEl.innerText = d.toLocaleTimeString('en-GB', { hour12: false });
+            dateEl.innerText = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
+        }
+
+        function drawPlanet(p, timeMs) {
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const visualSpeedMultiplier = 2; 
+            const angle = (2 * Math.PI * (timeMs * visualSpeedMultiplier)) / (p.period * 86400000); 
+            const epochOffset = (p.dist * 1234.56); 
+            const currentAngle = angle + epochOffset;
+
+            const x = centerX + Math.cos(currentAngle) * p.dist;
+            const y = centerY + Math.sin(currentAngle) * p.dist;
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, p.dist, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(0, 243, 255, 0.04)";
+            ctx.stroke();
+
+            const dx = mouse.x - x;
+            const dy = mouse.y - y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist < 20) {
+                activePlanet = { ...p, currentX: x, currentY: y };
+                ctx.beginPath();
+                ctx.arc(x, y, p.radius + 6, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(0, 243, 255, 0.5)";
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            if(p.rings) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(currentAngle);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, p.radius * 2.2, p.radius * 0.8, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(197, 171, 110, 0.3)";
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            ctx.beginPath();
+            ctx.arc(x, y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = p.color;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function updateHUD() {
+            if (activePlanet) {
+                planetHud.style.display = 'block';
+                planetHud.style.opacity = '1';
+                hudName.innerText = activePlanet.name.toUpperCase();
+                hudDesc.innerText = activePlanet.desc;
+
+                const hudX = activePlanet.currentX + 40;
+                const hudY = activePlanet.currentY - 40;
+                planetHud.style.left = `${hudX}px`;
+                planetHud.style.top = `${hudY}px`;
+
+                ctx.beginPath();
+                ctx.moveTo(activePlanet.currentX, activePlanet.currentY);
+                ctx.lineTo(hudX, hudY + 20);
+                ctx.strokeStyle = "rgba(0, 243, 255, 0.3)";
+                ctx.setLineDash([2, 2]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            } else {
+                planetHud.style.opacity = '0';
+                setTimeout(() => { if(!activePlanet) planetHud.style.display = 'none'; }, 300);
+            }
+        }
+
+        function drawSun() {
+            const centerX = width / 2;
+            const centerY = height / 2;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
+            ctx.fillStyle = "#fff";
+            ctx.shadowBlur = 50;
+            ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function drawKuiper(timeMs) {
+            ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+            kuiperBelt.forEach(p => {
+                const curAngle = p.angle + (timeMs * p.speed * 0.001);
+                const x = width / 2 + Math.cos(curAngle) * p.dist;
+                const y = height / 2 + Math.sin(curAngle) * p.dist;
+                ctx.fillRect(x, y, p.size, p.size);
+            });
+        }
+
+        function animate() {
+            const now = Date.now();
+            ctx.clearRect(0, 0, width, height);
+            updateClock();
+            drawSun();
+            activePlanet = null;
+            planets.forEach(p => drawPlanet(p, now));
+            drawKuiper(now);
+            updateHUD();
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', init);
+        window.addEventListener('mousemove', e => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        init();
+        animate();
+    </script>
+</body>
+</html>
