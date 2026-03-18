@@ -18,8 +18,14 @@
             background-color: var(--bg-dark);
             color: #fff;
             font-family: 'Inter', sans-serif;
-            overflow: hidden;
+            overflow-x: hidden;
             cursor: crosshair;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                overflow: hidden;
+            }
         }
 
         .font-mono-sci {
@@ -45,6 +51,12 @@
             z-index: 50;
         }
 
+        @media (max-width: 768px) {
+            .viewfinder {
+                inset: 10px;
+            }
+        }
+
         .viewfinder-corner {
             position: absolute;
             width: 12px;
@@ -61,6 +73,12 @@
             text-align: center;
             z-index: 100;
             pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .center-clock {
+                top: 20px;
+            }
         }
 
         /* 行星 HUD 信息 */
@@ -234,7 +252,7 @@
         <div class="absolute left-1/2 top-0 h-full w-[0.5px] bg-white/5"></div>
     </div>
 
-    <div class="relative z-10 h-screen w-screen p-10 md:p-14 flex flex-col justify-between pointer-events-none">
+    <div class="relative z-10 min-h-screen w-screen p-10 md:p-14 flex flex-col justify-between pointer-events-none pb-20 md:pb-0">
         
         <header class="flex justify-between items-start pointer-events-auto ui-panel">
             <div class="space-y-1">
