@@ -449,11 +449,17 @@
         const hudName = document.getElementById('hud-name');
         const hudDesc = document.getElementById('hud-desc');
         const escHint = document.getElementById('esc-hint');
+        const modal = document.getElementById('photo-modal');
+        const modalImg = document.getElementById('modal-img');
+        const modalPrev = document.getElementById('modal-prev');
+        const modalNext = document.getElementById('modal-next');
         
         let width, height;
         let mouse = { x: -1000, y: -1000 };
         let activePlanet = null;
         let isUiHidden = false;
+        let currentPhotoIndex = -1;
+        const photoFrames = Array.from(document.querySelectorAll('.photo-frame'));
 
         // 星球配置
         const planets = [
@@ -484,27 +490,6 @@
             tzEl.innerText = Intl.DateTimeFormat().resolvedOptions().timeZone.replace('_', ' ').toUpperCase();
         }
 
-        // ESC 切换
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                if (modal.style.display === 'flex') {
-                    closeModal();
-                } else {
-                    isUiHidden = !isUiHidden;
-                    document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
-                    escHint.style.opacity = isUiHidden ? "0.3" : "0";
-                }
-            }
-        });
-
-        // Modal for large photo
-        const modal = document.getElementById('photo-modal');
-        const modalImg = document.getElementById('modal-img');
-        const modalPrev = document.getElementById('modal-prev');
-        const modalNext = document.getElementById('modal-next');
-        const photoFrames = Array.from(document.querySelectorAll('.photo-frame'));
-        let currentPhotoIndex = -1;
-
         function updateModalNavigation() {
             modalPrev.classList.toggle('hidden', currentPhotoIndex <= 0);
             modalNext.classList.toggle('hidden', currentPhotoIndex >= photoFrames.length - 1);
@@ -525,41 +510,6 @@
                 modal.style.display = 'none';
             }, 400);
         }
-        
-        photoFrames.forEach((frame, index) => {
-            frame.addEventListener('click', () => openModal(index));
-        });
-
-        modalPrev.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (currentPhotoIndex > 0) openModal(currentPhotoIndex - 1);
-        });
-
-        modalNext.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (currentPhotoIndex < photoFrames.length - 1) openModal(currentPhotoIndex + 1);
-        });
-
-        modal.addEventListener('click', closeModal);
-
-        // Mobile swipe to toggle UI
-        let touchStartX = 0;
-        canvas.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-        });
-        canvas.addEventListener('touchend', (e) => {
-            const touchEndX = e.changedTouches[0].clientX;
-            const diff = touchStartX - touchEndX;
-            if (Math.abs(diff) > 50) {
-                if (diff > 0) {
-                    isUiHidden = true;
-                } else {
-                    isUiHidden = false;
-                }
-                document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
-                escHint.style.opacity = isUiHidden ? "0.3" : "0";
-            }
-        });
 
         function updateClock() {
             const d = new Date();
@@ -676,10 +626,23 @@
             requestAnimationFrame(animate);
         }
 
+        // Event Listeners
         window.addEventListener('resize', init);
         window.addEventListener('mousemove', e => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (modal.style.display === 'flex') {
+                    closeModal();
+                } else {
+                    isUiHidden = !isUiHidden;
+                    document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
+                    escHint.style.opacity = isUiHidden ? "0.3" : "0";
+                }
+            }
         });
 
         let scrollTimeout;
@@ -692,25 +655,38 @@
             }, 300);
         });
 
-        // Modal for large photo
-        const modal = document.getElementById('photo-modal');
-        const modalImg = document.getElementById('modal-img');
-        
-        document.querySelectorAll('.photo-frame').forEach(frame => {
-            frame.addEventListener('click', () => {
-                const img = frame.querySelector('img');
-                modalImg.src = img.src;
-                modal.style.display = 'flex';
-                setTimeout(() => modal.classList.add('active'), 10);
-            });
+        // Mobile swipe to toggle UI
+        let touchStartX = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        canvas.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) isUiHidden = true;
+                else isUiHidden = false;
+                document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
+                escHint.style.opacity = isUiHidden ? "0.3" : "0";
+            }
         });
 
-        modal.addEventListener('click', () => {
-            modal.classList.remove('active');
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 400);
+        // Modal Listeners
+        photoFrames.forEach((frame, index) => {
+            frame.addEventListener('click', () => openModal(index));
         });
+
+        modalPrev.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentPhotoIndex > 0) openModal(currentPhotoIndex - 1);
+        });
+
+        modalNext.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentPhotoIndex < photoFrames.length - 1) openModal(currentPhotoIndex + 1);
+        });
+
+        modal.addEventListener('click', closeModal);
 
         init();
         animate();
