@@ -296,18 +296,19 @@
                 </div>
 
                 <div class="data-card p-4">
-                    <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.03_GENESIS_PROTOCOL</div>
+                    <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.03_RHYTHM_PROTOCOL</div>
+                    <p class="text-[10px] leading-relaxed opacity-40 font-light">
+                        Initiated Musical.ly protocol. Architected the core interface of a global synchronization network, redefining social rhythm and connectivity.
+                    </p>
+                </div>
+
+                <div class="data-card p-4">
+                    <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.02_GENESIS_PROTOCOL</div>
                     <p class="text-[10px] leading-relaxed opacity-40 font-light">
                         Biological unit expansion: Welcomed a lovely son into the exploration fleet. Recalibrating mission priorities for a multi-generational journey.
                     </p>
                 </div>
 
-                <div class="data-card p-4">
-                    <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.02_RHYTHM_PROTOCOL</div>
-                    <p class="text-[10px] leading-relaxed opacity-40 font-light">
-                        Initiated Musical.ly protocol. Architected the core interface of a global synchronization network, redefining social rhythm and connectivity.
-                    </p>
-                </div>
 
                 <div class="data-card p-4">
                     <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.01_ETERNAL_ALLIANCE</div>
@@ -424,18 +425,23 @@
             }
         });
 
-        // Mobile double-tap to toggle UI
-        let lastTap = 0;
+        // Mobile swipe to toggle UI
+        let touchStartX = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
         canvas.addEventListener('touchend', (e) => {
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTap;
-            if (tapLength < 300 && tapLength > 0) {
-                isUiHidden = !isUiHidden;
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    isUiHidden = true;
+                } else {
+                    isUiHidden = false;
+                }
                 document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
                 escHint.style.opacity = isUiHidden ? "0.3" : "0";
-                e.preventDefault();
             }
-            lastTap = currentTime;
         });
 
         function updateClock() {
