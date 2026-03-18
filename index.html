@@ -22,7 +22,13 @@
             cursor: crosshair;
         }
 
-        @media (min-width: 768px) {
+        @media (min-width: 768px) and (orientation: landscape) {
+            body {
+                overflow: hidden;
+            }
+        }
+
+        @media (min-width: 768px) and (orientation: portrait) {
             body {
                 overflow: hidden;
             }
@@ -73,6 +79,7 @@
             text-align: center;
             z-index: 100;
             pointer-events: none;
+            transition: opacity 0.3s ease;
         }
 
         @media (max-width: 768px) {
@@ -318,7 +325,7 @@
                 </div>
                 <div class="photo-frame">
                     <img src="photo/anaheim_hill.jpg" alt="Anaheim Hill">
-                    <div class="photo-label font-mono-sci">DATA_REF_04</div>
+                    <div class="photo-label font-mono-sci">Anaheim Hill</div>
                 </div>
                 <div class="photo-frame">
                     <img src="photo/new_mexico.jpg" alt="New Mexico">
@@ -536,6 +543,16 @@
         window.addEventListener('mousemove', e => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
+        });
+
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            const clock = document.querySelector('.center-clock');
+            clock.style.opacity = '0.3';
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                clock.style.opacity = '1';
+            }, 300);
         });
 
         init();
