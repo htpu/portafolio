@@ -424,6 +424,20 @@
             }
         });
 
+        // Mobile double-tap to toggle UI
+        let lastTap = 0;
+        canvas.addEventListener('touchend', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                isUiHidden = !isUiHidden;
+                document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
+                escHint.style.opacity = isUiHidden ? "0.3" : "0";
+                e.preventDefault();
+            }
+            lastTap = currentTime;
+        });
+
         function updateClock() {
             const d = new Date();
             timeEl.innerText = d.toLocaleTimeString('en-GB', { hour12: false });
