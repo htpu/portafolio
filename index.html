@@ -193,6 +193,31 @@
             transform: scale(1);
         }
 
+        .modal-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--accent);
+            padding: 20px 15px;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+        }
+
+        .modal-nav:hover {
+            background: rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        .modal-nav.prev { left: 20px; }
+        .modal-nav.next { right: 20px; }
+        .modal-nav.hidden { display: none; }
+
         .photo-label {
             position: absolute;
             bottom: 6px;
@@ -409,7 +434,9 @@
     </div>
 
     <div id="photo-modal">
+        <button class="modal-nav prev" id="modal-prev">< PREV</button>
         <img id="modal-img" src="" alt="Enlarged Photo">
+        <button class="modal-nav next" id="modal-next">NEXT ></button>
     </div>
 
     <script>
@@ -460,11 +487,60 @@
         // ESC 切换
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                isUiHidden = !isUiHidden;
-                document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
-                escHint.style.opacity = isUiHidden ? "0.3" : "0";
+                if (modal.style.display === 'flex') {
+                    closeModal();
+                } else {
+                    isUiHidden = !isUiHidden;
+                    document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
+                    escHint.style.opacity = isUiHidden ? "0.3" : "0";
+                }
             }
         });
+
+        // Modal for large photo
+        const modal = document.getElementById('photo-modal');
+        const modalImg = document.getElementById('modal-img');
+        const modalPrev = document.getElementById('modal-prev');
+        const modalNext = document.getElementById('modal-next');
+        const photoFrames = Array.from(document.querySelectorAll('.photo-frame'));
+        let currentPhotoIndex = -1;
+
+        function updateModalNavigation() {
+            modalPrev.classList.toggle('hidden', currentPhotoIndex <= 0);
+            modalNext.classList.toggle('hidden', currentPhotoIndex >= photoFrames.length - 1);
+        }
+
+        function openModal(index) {
+            currentPhotoIndex = index;
+            const img = photoFrames[index].querySelector('img');
+            modalImg.src = img.src;
+            modal.style.display = 'flex';
+            updateModalNavigation();
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 400);
+        }
+        
+        photoFrames.forEach((frame, index) => {
+            frame.addEventListener('click', () => openModal(index));
+        });
+
+        modalPrev.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentPhotoIndex > 0) openModal(currentPhotoIndex - 1);
+        });
+
+        modalNext.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentPhotoIndex < photoFrames.length - 1) openModal(currentPhotoIndex + 1);
+        });
+
+        modal.addEventListener('click', closeModal);
 
         // Mobile swipe to toggle UI
         let touchStartX = 0;
