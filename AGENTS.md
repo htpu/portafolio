@@ -32,6 +32,12 @@ npx serve .
 ### Build Process
 The project uses Tailwind CLI version 3. It scans `index.html` and outputs to `dist/output.css`.
 
+### Deployment
+- **Platform**: GitHub Pages
+- **Automation**: GitHub Actions (`.github/workflows/deploy.yml`)
+- **Process**: On push to `main`, the workflow installs dependencies, runs `npm run build:css`, and deploys the entire directory (including the generated `dist/`).
+- **Note**: The `dist/` directory is ignored in git and only exists in the CI environment or local development after building.
+
 ---
 
 ## Code Style Guidelines
@@ -51,7 +57,7 @@ The project uses Tailwind CLI version 3. It scans `index.html` and outputs to `d
 - Prefer Tailwind utility classes over custom CSS when possible
 
 ### CSS Guidelines
-- Use Tailwind utility classes via CDN for layout and spacing
+- Use Tailwind utility classes for layout and spacing
 - Custom CSS goes in `<style>` block in `<head>` - not inline
 - CSS variables (custom properties) for theme colors: `--accent`, `--bg-dark`
 - Use `rem` for font sizes, `px` for borders and small dimensions
