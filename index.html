@@ -63,6 +63,13 @@
             }
         }
 
+        @media (max-width: 1023px) {
+            .viewfinder,
+            .hidden-watermark {
+                display: none;
+            }
+        }
+
         .viewfinder-corner {
             position: absolute;
             width: 12px;
@@ -281,6 +288,127 @@
             color: var(--accent);
             text-shadow: 0 0 8px var(--accent);
         }
+
+        /* 移动端日志抽屉 */
+        .log-drawer-trigger {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 40;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            backdrop-filter: blur(10px);
+            color: var(--accent);
+            padding: 12px 16px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            transition: all 0.3s ease;
+        }
+
+        .log-drawer-trigger:hover {
+            background: rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        @media (max-width: 1023px) {
+            .log-drawer-trigger {
+                display: flex;
+            }
+        }
+
+        .log-drawer-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 45;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .log-drawer-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .log-drawer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 50;
+            background: rgba(8, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 16px 16px 0 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .log-drawer.open {
+            max-height: 70vh;
+        }
+
+        .drawer-handle {
+            width: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin: 12px auto;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px 12px;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+        }
+
+        .drawer-header span {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            color: rgba(0, 243, 255, 0.6);
+            letter-spacing: 0.2em;
+        }
+
+        .drawer-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            transition: all 0.3s ease;
+        }
+
+        .drawer-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .drawer-content {
+            padding: 16px 20px 32px;
+            max-height: calc(70vh - 50px);
+            overflow-y: auto;
+        }
+
+        .drawer-content .data-card {
+            margin-bottom: 12px;
+        }
+
+        .drawer-content .data-card:last-child {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -334,10 +462,10 @@
             </div>
         </header>
 
-        <div class="flex flex-col md:flex-row items-end gap-10 pointer-events-auto">
+        <div class="flex flex-col lg:flex-row items-end gap-8 lg:gap-10 pointer-events-auto">
             
-            <!-- 人生日志 (5 to 1 逆序) -->
-            <div class="w-full md:w-80 space-y-3 ui-panel">
+            <!-- 人生日志 Desktop/Tablet (5 to 1 逆序) -->
+            <div class="hidden lg:block w-72 xl:w-80 space-y-3 ui-panel">
                 <div class="text-[8px] font-mono-sci opacity-30 mb-2 tracking-widest">// MISSION_CHRONICLES</div>
                 
                 <div class="data-card p-4">
@@ -378,7 +506,7 @@
             </div>
 
             <!-- 照片网格 -->
-            <div class="flex-grow grid grid-cols-2 lg:grid-cols-4 gap-2 w-full max-w-6xl ui-panel">
+            <div class="flex-grow grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 w-full max-w-6xl ui-panel">
                 <div class="photo-frame">
                     <img src="https://images.weserv.nl/?url=www.htpu.net/photo/empire_building.jpg&w=600" data-original="photo/empire_building.jpg" alt="Empire State Building">
                     <div class="photo-label font-mono-sci">Empire State Building</div>
@@ -434,6 +562,62 @@
             </div>
         </footer>
 
+    </div>
+
+    <!-- 移动端日志抽屉触发器 -->
+    <button id="log-drawer-toggle" class="log-drawer-trigger">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        MISSION LOGS
+    </button>
+
+    <!-- 抽屉背景遮罩 -->
+    <div id="log-drawer-backdrop" class="log-drawer-backdrop"></div>
+
+    <!-- 移动端日志抽屉 -->
+    <div id="log-drawer" class="log-drawer">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+            <span>// MISSION_CHRONICLES</span>
+            <button id="log-drawer-close" class="drawer-close">×</button>
+        </div>
+        <div class="drawer-content">
+            <div class="data-card p-4">
+                <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.05_WEST_COAST_ODYSSEY</div>
+                <p class="text-[10px] leading-relaxed opacity-40 font-light">
+                    Solo trip through the western 3 states. Navigated CA, OR, and WA using Tesla Model Y 2026. Captured the essence of the Pacific coastline through precision landscape data.
+                </p>
+            </div>
+            <div class="data-card p-4">
+                <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.04_NORTH_AMERICAN_BASE</div>
+                <p class="text-[10px] leading-relaxed opacity-40 font-light">
+                    Deployment finalized: Move to USA. Established a permanent operational node for transcontinental surveys and technological research.
+                </p>
+            </div>
+            <div class="data-card p-4">
+                <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.03_RHYTHM_PROTOCOL</div>
+                <p class="text-[10px] leading-relaxed opacity-40 font-light">
+                    Initiated Musical.ly protocol. Architected the core interface of a global synchronization network, redefining social rhythm and connectivity.
+                </p>
+            </div>
+            <div class="data-card p-4">
+                <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.02_GENESIS_PROTOCOL</div>
+                <p class="text-[10px] leading-relaxed opacity-40 font-light">
+                    Biological unit expansion: Welcomed a lovely son into the exploration fleet. Recalibrating mission priorities for a multi-generational journey.
+                </p>
+            </div>
+            <div class="data-card p-4">
+                <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.01_ETERNAL_ALLIANCE</div>
+                <p class="text-[10px] leading-relaxed opacity-40 font-light">
+                    Core alliance formed: Marry my lovely wife. Synchronized trajectories to navigate the complexities of the terrestrial and celestial realms together.
+                </p>
+            </div>
+        </div>
     </div>
 
     <div id="photo-modal">
@@ -631,6 +815,16 @@
 
         // Event Listeners
         window.addEventListener('resize', init);
+
+        // 点击空白处清屏
+        canvas.addEventListener('click', (e) => {
+            if (e.target === canvas) {
+                isUiHidden = !isUiHidden;
+                document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
+                escHint.style.opacity = isUiHidden ? "0.3" : "0";
+            }
+        });
+
         window.addEventListener('mousemove', e => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
@@ -690,6 +884,37 @@
         });
 
         modal.addEventListener('click', closeModal);
+
+        // 移动端日志抽屉交互
+        const logDrawerToggle = document.getElementById('log-drawer-toggle');
+        const logDrawer = document.getElementById('log-drawer');
+        const logDrawerBackdrop = document.getElementById('log-drawer-backdrop');
+        const logDrawerClose = document.getElementById('log-drawer-close');
+
+        function openLogDrawer() {
+            logDrawer.classList.add('open');
+            logDrawerBackdrop.classList.add('active');
+        }
+
+        function closeLogDrawer() {
+            logDrawer.classList.remove('open');
+            logDrawerBackdrop.classList.remove('active');
+        }
+
+        logDrawerToggle.addEventListener('click', openLogDrawer);
+        logDrawerClose.addEventListener('click', closeLogDrawer);
+        logDrawerBackdrop.addEventListener('click', closeLogDrawer);
+
+        let drawerTouchStartY = 0;
+        logDrawer.addEventListener('touchstart', (e) => {
+            drawerTouchStartY = e.touches[0].clientY;
+        });
+        logDrawer.addEventListener('touchend', (e) => {
+            const touchEndY = e.changedTouches[0].clientY;
+            if (touchEndY - drawerTouchStartY > 50) {
+                closeLogDrawer();
+            }
+        });
 
         init();
         animate();
