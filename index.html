@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P and P | DAVID's HOME</title>
+    <title>David Han | Developer Portfolio, Realtime Orrery, and Interactive Web Experiments</title>
+    <meta name="description" content="David Han's developer portfolio: a realtime solar system orrery, interactive web experiments, product design work, and creative engineering projects built with code.">
+    <meta name="author" content="David Han">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="David Han | Developer Portfolio, Realtime Orrery, and Interactive Web Experiments">
+    <meta property="og:description" content="Explore David Han's developer portfolio featuring a realtime solar system orrery, interactive web experiments, and creative engineering projects.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="David Han Portfolio">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="David Han | Developer Portfolio, Realtime Orrery, and Interactive Web Experiments">
+    <meta name="twitter:description" content="Developer portfolio with a realtime solar system visualization, interactive experiments, and product-minded engineering work.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%2300f3ff'/><circle cx='50' cy='50' r='15' fill='%23020204'/></svg>">
     <link href="dist/output.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -538,20 +548,20 @@
                     <span>High-Precision Optics</span>
                 </div>
                 <!-- 友情链接 -->
-                <div class="flex items-center gap-4 text-[9px] font-mono-sci opacity-40">
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[9px] font-mono-sci opacity-40">
                     <span class="opacity-50">FRIEND_NODES:</span>
-                    <a href="https://dan.htpu.net" target="_blank" class="friend-link">
+                    <a href="https://dan.htpu.net" target="_blank" rel="noreferrer noopener" class="friend-link" title="GUANDAN card game">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Z"/><path d="M8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><path d="M15.5 17a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><path d="m14 8-1.5 2"/><path d="m11.5 14-1.5 2"/></svg>
-                        GUANDAN
+                        GUANDAN / CARDS
                     </a>
-                    <a href="https://solar.htpu.net" target="_blank" class="friend-link">
-                        SOLAR
+                    <a href="https://solar.htpu.net" target="_blank" rel="noreferrer noopener" class="friend-link" title="SOLAR orrery">
+                        SOLAR / ORRERY
                     </a>
-                    <a href="https://arcade.htpu.net" target="_blank" class="friend-link">
-                        ARCADE
+                    <a href="https://arcade.htpu.net" target="_blank" rel="noreferrer noopener" class="friend-link" title="ARCADE mini games">
+                        ARCADE / GAMES
                     </a>
-                    <a href="https://word.htpu.net" target="_blank" class="friend-link">
-                        WORD
+                    <a href="https://word.htpu.net" target="_blank" rel="noreferrer noopener" class="friend-link" title="WORD vocabulary lab">
+                        WORD / LEXICON
                     </a>
                 </div>
             </div>
@@ -660,19 +670,47 @@
             { name: "Neptune", dist: 570, radius: 4.8, period: 60190, color: "#3e54e8", desc: "The most distant major planet, whipped by supersonic winds in a cold, dark void." }
         ];
 
+        const BASE_KUIPER_PARTICLE_COUNT = 1200;
+        const MOBILE_KUIPER_PARTICLE_COUNT = 600;
+        const LOW_POWER_KUIPER_PARTICLE_COUNT = 420;
         const kuiperBelt = [];
-        for(let i=0; i<1200; i++) {
-            kuiperBelt.push({
-                dist: 620 + Math.random() * 100,
-                angle: Math.random() * Math.PI * 2,
-                speed: (Math.random() * 0.00005) + 0.00001,
-                size: Math.random() * 1.2
-            });
+        let animationFrameId = null;
+        let isAnimationRunning = false;
+
+        function getKuiperParticleCount() {
+            const isMobileViewport = window.innerWidth < 768;
+            const hasLimitedCpu = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+            const hasLowMemory = navigator.deviceMemory && navigator.deviceMemory <= 4;
+
+            if (isMobileViewport || hasLimitedCpu || hasLowMemory) {
+                return LOW_POWER_KUIPER_PARTICLE_COUNT;
+            }
+
+            if (window.innerWidth < 1280) {
+                return MOBILE_KUIPER_PARTICLE_COUNT;
+            }
+
+            return BASE_KUIPER_PARTICLE_COUNT;
+        }
+
+        function rebuildKuiperBelt() {
+            kuiperBelt.length = 0;
+            const particleCount = getKuiperParticleCount();
+
+            for (let i = 0; i < particleCount; i++) {
+                kuiperBelt.push({
+                    dist: 620 + Math.random() * 100,
+                    angle: Math.random() * Math.PI * 2,
+                    speed: (Math.random() * 0.00005) + 0.00001,
+                    size: Math.random() * 1.2
+                });
+            }
         }
 
         function init() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
+            rebuildKuiperBelt();
             document.getElementById('uid').innerText = Math.random().toString(16).slice(2, 10).toUpperCase();
             tzEl.innerText = Intl.DateTimeFormat().resolvedOptions().timeZone.replace('_', ' ').toUpperCase();
         }
@@ -810,11 +848,34 @@
             planets.forEach(p => drawPlanet(p, now));
             drawKuiper(now);
             updateHUD();
-            requestAnimationFrame(animate);
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        function startAnimation() {
+            if (isAnimationRunning) return;
+            isAnimationRunning = true;
+            animate();
+        }
+
+        function stopAnimation() {
+            if (!isAnimationRunning) return;
+            isAnimationRunning = false;
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
         }
 
         // Event Listeners
         window.addEventListener('resize', init);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAnimation();
+                return;
+            }
+
+            startAnimation();
+        });
 
         // 点击空白处清屏
         canvas.addEventListener('click', (e) => {
@@ -917,7 +978,7 @@
         });
 
         init();
-        animate();
+        startAnimation();
     </script>
 </body>
 </html>
