@@ -575,7 +575,7 @@
     </div>
 
     <!-- 移动端日志抽屉触发器 -->
-    <button id="log-drawer-toggle" class="log-drawer-trigger">
+    <button id="log-drawer-toggle" class="log-drawer-trigger ui-panel">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
@@ -793,6 +793,12 @@
         }
 
         function updateHUD() {
+            if (isUiHidden) {
+                planetHud.style.opacity = '0';
+                planetHud.style.display = 'none';
+                return;
+            }
+
             if (activePlanet) {
                 planetHud.style.display = 'block';
                 planetHud.style.opacity = '1';
@@ -866,6 +872,33 @@
             }
         }
 
+        function setUiHidden(nextHiddenState) {
+            isUiHidden = nextHiddenState;
+            document.querySelectorAll('.ui-panel').forEach(panel => panel.classList.toggle('ui-hidden', isUiHidden));
+
+            if (isUiHidden) {
+                closeLogDrawer();
+                planetHud.style.opacity = '0';
+                planetHud.style.display = 'none';
+            }
+        }
+
+        function isBlankAreaClick(target) {
+            const blockedSelector = [
+                'a',
+                'button',
+                'img',
+                '.photo-frame',
+                '.ui-panel',
+                '#photo-modal',
+                '#log-drawer',
+                '#log-drawer-backdrop',
+                '#planet-hud'
+            ].join(', ');
+
+            return !target.closest(blockedSelector);
+        }
+
         // Event Listeners
         window.addEventListener('resize', init);
         document.addEventListener('visibilitychange', () => {
@@ -877,13 +910,11 @@
             startAnimation();
         });
 
-        // 点击空白处清屏
-        canvas.addEventListener('click', (e) => {
-            if (e.target === canvas) {
-                isUiHidden = !isUiHidden;
-                document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
-                escHint.style.opacity = isUiHidden ? "0.3" : "0";
-            }
+        // 点击页面空白处切换沉浸模式
+        document.addEventListener('click', (e) => {
+            if (!isBlankAreaClick(e.target)) return;
+            if (modal.style.display === 'flex') return;
+            setUiHidden(!isUiHidden);
         });
 
         window.addEventListener('mousemove', e => {
@@ -896,9 +927,7 @@
                 if (modal.style.display === 'flex') {
                     closeModal();
                 } else {
-                    isUiHidden = !isUiHidden;
-                    document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
-                    escHint.style.opacity = isUiHidden ? "0.3" : "0";
+                    setUiHidden(!isUiHidden);
                 }
             }
         });
@@ -922,10 +951,7 @@
             const touchEndX = e.changedTouches[0].clientX;
             const diff = touchStartX - touchEndX;
             if (Math.abs(diff) > 50) {
-                if (diff > 0) isUiHidden = true;
-                else isUiHidden = false;
-                document.querySelectorAll('.ui-panel').forEach(p => p.classList.toggle('ui-hidden', isUiHidden));
-                escHint.style.opacity = isUiHidden ? "0.3" : "0";
+                setUiHidden(diff > 0);
             }
         });
 
