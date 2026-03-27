@@ -56,6 +56,16 @@
             inset: 0;
             z-index: -1;
             background: radial-gradient(circle at center, #0a0c14 0%, #020204 100%);
+            transition: background 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 1s ease;
+        }
+
+        body.anomaly-theme {
+            --accent: #ffb347;
+        }
+
+        body.anomaly-theme #solar-canvas {
+            background: radial-gradient(circle at 50% 35%, rgba(255, 219, 153, 0.38) 0%, rgba(235, 112, 61, 0.18) 32%, #1a0911 72%, #080309 100%);
+            filter: saturate(1.2);
         }
 
         /* UI 观察窗口 */
@@ -154,14 +164,15 @@
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.04);
             transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            background: #000;
+            background: rgba(0, 0, 0, 0.12);
         }
 
         .photo-frame img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            filter: brightness(0.8);
+            opacity: 0.28;
+            filter: brightness(0.6);
             transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -173,7 +184,8 @@
         }
 
         .photo-frame:hover img {
-            filter: brightness(1.1);
+            opacity: 1;
+            filter: brightness(1.08);
             transform: scale(1.1);
         }
 
@@ -419,6 +431,237 @@
         .drawer-content .data-card:last-child {
             margin-bottom: 0;
         }
+
+        #screen-flash {
+            position: fixed;
+            inset: 0;
+            z-index: 1200;
+            background: #fff;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        #screen-flash.active {
+            opacity: 1;
+        }
+
+        .status-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 36px;
+            transform: translateX(-50%) translateY(16px);
+            z-index: 1100;
+            padding: 10px 16px;
+            color: #fff7df;
+            background: rgba(10, 10, 12, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(14px);
+            letter-spacing: 0.18em;
+            font-size: 9px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        .status-toast.active {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #anomaly-panel {
+            position: fixed;
+            inset: 0;
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(255, 209, 138, 0.28), transparent 28%),
+                radial-gradient(circle at 80% 22%, rgba(255, 122, 89, 0.22), transparent 24%),
+                linear-gradient(135deg, rgba(34, 10, 18, 0.92), rgba(84, 22, 18, 0.84), rgba(16, 5, 12, 0.95));
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #anomaly-panel.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .anomaly-shell {
+            width: min(1080px, 100%);
+            border: 1px solid rgba(255, 228, 189, 0.22);
+            background: rgba(31, 12, 17, 0.54);
+            backdrop-filter: blur(24px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+            padding: 28px;
+        }
+
+        .anomaly-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .anomaly-card {
+            min-height: 180px;
+            border: 1px solid rgba(255, 223, 180, 0.14);
+            background: linear-gradient(180deg, rgba(255, 244, 228, 0.06), rgba(255, 172, 120, 0.08));
+            padding: 18px;
+        }
+
+        .anomaly-photo {
+            min-height: 220px;
+            background:
+                linear-gradient(135deg, rgba(255, 195, 113, 0.16), rgba(255, 98, 79, 0.2)),
+                radial-gradient(circle at 30% 30%, rgba(255, 244, 198, 0.35), transparent 24%),
+                radial-gradient(circle at 74% 36%, rgba(255, 142, 95, 0.26), transparent 26%),
+                #14080d;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .anomaly-kicker {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            letter-spacing: 0.28em;
+            color: rgba(255, 225, 183, 0.74);
+            text-transform: uppercase;
+        }
+
+        .anomaly-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.6rem, 4vw, 3rem);
+            line-height: 1.1;
+            letter-spacing: 0.08em;
+            color: #fff2dc;
+            text-transform: uppercase;
+        }
+
+        .anomaly-copy {
+            color: rgba(255, 241, 224, 0.72);
+            font-size: 0.92rem;
+            line-height: 1.7;
+            max-width: 52ch;
+        }
+
+        #reset-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 950;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 6px),
+                radial-gradient(circle at center, rgba(123, 10, 24, 0.18), rgba(2, 2, 4, 0.96));
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+
+        #reset-overlay.active {
+            opacity: 1;
+        }
+
+        .reset-panel {
+            width: min(680px, calc(100vw - 40px));
+            border: 1px solid rgba(255, 115, 115, 0.24);
+            background: rgba(10, 6, 8, 0.76);
+            backdrop-filter: blur(18px);
+            padding: 24px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .reset-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.2rem, 3vw, 2.2rem);
+            line-height: 1.25;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: #ffc9c9;
+        }
+
+        .reset-copy {
+            margin-top: 12px;
+            color: rgba(255, 225, 225, 0.68);
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
+
+        #flyby-ship {
+            position: fixed;
+            left: -260px;
+            top: 18vh;
+            z-index: 1300;
+            opacity: 0;
+            pointer-events: auto;
+            width: 220px;
+            height: auto;
+            transform: translate3d(0, 0, 0) scale(0.92);
+            filter: drop-shadow(0 0 18px rgba(0, 243, 255, 0.35));
+        }
+
+        #flyby-ship.active {
+            animation: ship-flyby 2.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #flyby-ship img {
+            display: block;
+            width: 100%;
+            height: auto;
+            opacity: 0.22;
+            mix-blend-mode: screen;
+            transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+        }
+
+        #flyby-ship:hover img {
+            opacity: 0.9;
+            filter: brightness(1.08);
+            transform: scale(1.02);
+        }
+
+        #flyby-ship::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 100%;
+            width: 260px;
+            height: 10px;
+            background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.18), rgba(0, 243, 255, 0.55));
+            border-radius: 999px;
+            filter: blur(4px);
+            transform: translateY(-50%);
+        }
+
+        @keyframes ship-flyby {
+            0% {
+                opacity: 0;
+                transform: translate3d(0, 0, 0) scale(0.95);
+            }
+            10% {
+                opacity: 1;
+            }
+            65% {
+                opacity: 1;
+                transform: translate3d(calc(70vw + 120px), -18px, 0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(calc(100vw + 340px), -36px, 0) scale(1.05);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .anomaly-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -481,7 +724,7 @@
                 <div class="data-card p-4">
                     <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.05_WEST_COAST_ODYSSEY</div>
                     <p class="text-[10px] leading-relaxed opacity-40 font-light">
-                        Solo trip through the western 3 states. Navigated CA, OR, and WA using Tesla Model Y 2026. Captured the essence of the Pacific coastline through precision landscape data.
+                        Solo trip through the western 3 states. Navigated CA, AZ, and NM using Tesla Model Y 2026. Captured the essence of desert highways and open-sky terrain through precision landscape data.
                     </p>
                 </div>
 
@@ -600,7 +843,7 @@
             <div class="data-card p-4">
                 <div class="font-mono-sci text-[8px] text-cyan-400/80 mb-1">LOG.05_WEST_COAST_ODYSSEY</div>
                 <p class="text-[10px] leading-relaxed opacity-40 font-light">
-                    Solo trip through the western 3 states. Navigated CA, OR, and WA using Tesla Model Y 2026. Captured the essence of the Pacific coastline through precision landscape data.
+                    Solo trip through the western 3 states. Navigated CA, AZ, and NM using Tesla Model Y 2026. Captured the essence of desert highways and open-sky terrain through precision landscape data.
                 </p>
             </div>
             <div class="data-card p-4">
@@ -636,6 +879,57 @@
         <button class="modal-nav next" id="modal-next">NEXT ></button>
     </div>
 
+    <div id="screen-flash"></div>
+    <div id="status-toast" class="status-toast"></div>
+
+    <section id="anomaly-panel">
+        <div class="anomaly-shell">
+            <div class="anomaly-kicker">AFTERGLOW ARCHIVE // SOLAR ANOMALY</div>
+            <div class="anomaly-title mt-3">Sunset Protocol Engaged</div>
+            <p class="anomaly-copy mt-4">
+                Hidden layer recovered. The system briefly leaves deep space mode and reveals a warm afterimage archive: unfinished sketches, impossible coordinates, and private mission fragments that only surface after a controlled stellar collapse.
+            </p>
+            <div class="anomaly-grid">
+                <article class="anomaly-card anomaly-photo">
+                    <div class="anomaly-kicker">FRAME_01</div>
+                    <div class="text-2xl text-white/95 mt-2">PACIFIC AFTERBURN</div>
+                    <div class="text-sm text-white/55 mt-2">A synthetic sunset memory reconstructed from west coast road logs and horizon telemetry.</div>
+                </article>
+                <article class="anomaly-card">
+                    <div class="anomaly-kicker">UNPUBLISHED NOTE</div>
+                    <div class="text-lg text-white/90 mt-3">Design for emotional latency</div>
+                    <p class="text-sm leading-7 text-white/60 mt-3">
+                        Build interfaces that feel fast before they are measured as fast. The user trusts atmosphere before they trust throughput charts.
+                    </p>
+                </article>
+                <article class="anomaly-card">
+                    <div class="anomaly-kicker">COORDINATES</div>
+                    <div class="text-lg text-white/90 mt-3">37.7749 / -122.4194</div>
+                    <p class="text-sm leading-7 text-white/60 mt-3">
+                        Warm theme anomaly opened near the Pacific edge. Signal strength: unstable. Visibility window: a few seconds only.
+                    </p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <div id="reset-overlay">
+        <div class="reset-panel">
+            <div class="anomaly-kicker">SIMULATION ERROR // ORBITAL COLLAPSE</div>
+            <div class="reset-title mt-3">Mission Failed — Simulation Reset</div>
+            <p class="reset-copy">
+                Earth was dragged into the stellar core. Rewinding the scene, restoring orbital history, and rebuilding the system from a known-good epoch.
+            </p>
+        </div>
+    </div>
+
+    <div id="flyby-ship">
+        <img
+            alt="Sci-fi spaceship"
+            src="starship-generic.svg"
+        >
+    </div>
+
     <script>
         const canvas = document.getElementById('solar-canvas');
         const ctx = canvas.getContext('2d');
@@ -650,32 +944,75 @@
         const modalImg = document.getElementById('modal-img');
         const modalPrev = document.getElementById('modal-prev');
         const modalNext = document.getElementById('modal-next');
+        const screenFlash = document.getElementById('screen-flash');
+        const statusToast = document.getElementById('status-toast');
+        const anomalyPanel = document.getElementById('anomaly-panel');
+        const resetOverlay = document.getElementById('reset-overlay');
+        const flybyShip = document.getElementById('flyby-ship');
         
+        const SUN_RADIUS = 12;
+        const SUN_HIT_RADIUS = 28;
+        const SUN_TRIGGER_CLICKS = 5;
+        const SUN_CLICK_WINDOW_MS = 1400;
+        const SUPERNOVA_DURATION_MS = 6200;
+        const RESET_DURATION_MS = 2200;
+        const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
         let width, height;
         let mouse = { x: -1000, y: -1000 };
         let activePlanet = null;
         let isUiHidden = false;
         let currentPhotoIndex = -1;
+        let animationFrameId = null;
+        let isAnimationRunning = false;
+        let draggingPlanet = null;
+        let draggingPointerId = null;
+        let suppressCanvasClick = false;
+        let statusToastTimer = null;
+        let konamiIndex = 0;
+        let sunClickTimestamps = [];
+        let consoleMissionBooted = false;
+        let consoleMissionPrinted = false;
+        const sunPosition = { x: 0, y: 0 };
         const photoFrames = Array.from(document.querySelectorAll('.photo-frame'));
 
         // 星球配置
         const planets = [
-            { name: "Mercury", dist: 60, radius: 1.5, period: 88, color: "#8d9196", desc: "The smallest planet and closest to the Sun. It experiences extreme temperature fluctuations." },
-            { name: "Venus", dist: 90, radius: 3.5, period: 224.7, color: "#e3bb76", desc: "Earth's twin in size, trapped in a runaway greenhouse effect with a toxic atmosphere." },
-            { name: "Earth", dist: 130, radius: 3.8, period: 365.25, color: "#2b82c9", desc: "Our home world. The only planet known to harbor life, with vast oceans of liquid water.", moons: [{ dist: 8, radius: 0.8, period: 27.3, color: "#ccc" }] },
-            { name: "Mars", dist: 180, radius: 2.2, period: 687, color: "#e27b58", desc: "The Red Planet. Home to the solar system's tallest volcano, Olympus Mons." },
-            { name: "Jupiter", dist: 280, radius: 9, period: 4333, color: "#d39c7e", desc: "The king of planets. A gas giant with a Great Red Spot storm larger than Earth itself." },
-            { name: "Saturn", dist: 380, radius: 7.5, period: 10759, color: "#c5ab6e", desc: "Famous for its dazzling ring system, this gas giant is the second-largest planet.", rings: true },
-            { name: "Uranus", dist: 480, radius: 5, period: 30687, color: "#b5e1e1", desc: "An ice giant with a unique 98-degree tilt, rotating on its side relative to the Sun." },
-            { name: "Neptune", dist: 570, radius: 4.8, period: 60190, color: "#3e54e8", desc: "The most distant major planet, whipped by supersonic winds in a cold, dark void." }
+            { name: "Mercury", dist: 60, radius: 1.5, period: 88, color: "#8d9196", desc: "The smallest planet and closest to the Sun. It experiences extreme temperature fluctuations.", orbit: { N: [48.3313, 3.24587e-5], i: [7.0047, 5.0e-8], w: [29.1241, 1.01444e-5], a: [0.387098, 0], e: [0.205635, 5.59e-10], M: [168.6562, 4.0923344368] } },
+            { name: "Venus", dist: 90, radius: 3.5, period: 224.7, color: "#e3bb76", desc: "Earth's twin in size, trapped in a runaway greenhouse effect with a toxic atmosphere.", orbit: { N: [76.6799, 2.4659e-5], i: [3.3946, 2.75e-8], w: [54.891, 1.38374e-5], a: [0.72333, 0], e: [0.006773, -1.302e-9], M: [48.0052, 1.6021302244] } },
+            { name: "Earth", dist: 130, radius: 3.8, period: 365.25, color: "#2b82c9", desc: "Our home world. Now follows an approximate realtime orbit unless you drag it off-course. If it touches the Sun, the simulation collapses.", draggable: true, orbit: { N: [0, 0], i: [0, 0], w: [282.9404, 4.70935e-5], a: [1, 0], e: [0.016709, -1.151e-9], M: [356.047, 0.9856002585] } },
+            { name: "Mars", dist: 180, radius: 2.2, period: 687, color: "#e27b58", desc: "The Red Planet. Home to the solar system's tallest volcano, Olympus Mons.", orbit: { N: [49.5574, 2.11081e-5], i: [1.8497, -1.78e-8], w: [286.5016, 2.92961e-5], a: [1.523688, 0], e: [0.093405, 2.516e-9], M: [18.6021, 0.5240207766] } },
+            { name: "Jupiter", dist: 280, radius: 9, period: 4333, color: "#d39c7e", desc: "The king of planets. A gas giant with a Great Red Spot storm larger than Earth itself.", orbit: { N: [100.4542, 2.76854e-5], i: [1.303, -1.557e-7], w: [273.8777, 1.64505e-5], a: [5.20256, 0], e: [0.048498, 4.469e-9], M: [19.895, 0.0830853001] } },
+            { name: "Saturn", dist: 380, radius: 7.5, period: 10759, color: "#c5ab6e", desc: "Famous for its dazzling ring system, this gas giant is the second-largest planet.", rings: true, orbit: { N: [113.6634, 2.3898e-5], i: [2.4886, -1.081e-7], w: [339.3939, 2.97661e-5], a: [9.55475, 0], e: [0.055546, -9.499e-9], M: [316.967, 0.0334442282] } },
+            { name: "Uranus", dist: 480, radius: 5, period: 30687, color: "#b5e1e1", desc: "An ice giant with a unique 98-degree tilt, rotating on its side relative to the Sun.", orbit: { N: [74.0005, 1.3978e-5], i: [0.7733, 1.9e-8], w: [96.6612, 3.0565e-5], a: [19.18171, -1.55e-8], e: [0.047318, 7.45e-9], M: [142.5905, 0.011725806] } },
+            { name: "Neptune", dist: 570, radius: 4.8, period: 60190, color: "#3e54e8", desc: "The most distant major planet, whipped by supersonic winds in a cold, dark void.", orbit: { N: [131.7806, 3.0173e-5], i: [1.77, -2.55e-7], w: [272.8461, -6.027e-6], a: [30.05826, 3.313e-8], e: [0.008606, 2.15e-9], M: [260.2471, 0.005995147] } },
+            { name: "Barry Planet", dist: 330, radius: 6.4, period: 90500, color: "#ff8a65", desc: "Hidden ninth world recovered from cheat-code folklore. Barry Planet now drifts in a random upper-right orbit.", hidden: true, unlocked: false, randomUpperRight: true }
         ];
 
         const BASE_KUIPER_PARTICLE_COUNT = 1200;
         const MOBILE_KUIPER_PARTICLE_COUNT = 600;
         const LOW_POWER_KUIPER_PARTICLE_COUNT = 420;
         const kuiperBelt = [];
-        let animationFrameId = null;
-        let isAnimationRunning = false;
+        const supernovaState = {
+            active: false,
+            startTime: 0,
+            restoreUiHidden: false,
+            timeoutIds: []
+        };
+        const resetState = {
+            active: false,
+            startTime: 0,
+            rewindOriginTime: 0,
+            timeoutId: null
+        };
+
+        planets.forEach((planet, index) => {
+            planet.phase = planet.phaseOverride ?? (index * 0.82);
+            planet.defaultDist = planet.dist;
+            planet.currentX = -1000;
+            planet.currentY = -1000;
+            planet.currentRadius = planet.radius;
+        });
 
         function getKuiperParticleCount() {
             const isMobileViewport = window.innerWidth < 768;
@@ -707,10 +1044,345 @@
             }
         }
 
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        function degToRad(degrees) {
+            return degrees * (Math.PI / 180);
+        }
+
+        function normalizeAngle(angle) {
+            return ((angle % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
+        }
+
+        function getJulianDay(timeMs) {
+            return (timeMs / 86400000) + 2440587.5;
+        }
+
+        function solveEccentricAnomaly(meanAnomaly, eccentricity) {
+            let eccentricAnomaly = meanAnomaly + eccentricity * Math.sin(meanAnomaly) * (1 + eccentricity * Math.cos(meanAnomaly));
+
+            for (let i = 0; i < 6; i++) {
+                eccentricAnomaly -= (eccentricAnomaly - eccentricity * Math.sin(eccentricAnomaly) - meanAnomaly) / (1 - eccentricity * Math.cos(eccentricAnomaly));
+            }
+
+            return eccentricAnomaly;
+        }
+
+        function getVisiblePlanets() {
+            return planets.filter(planet => !planet.hidden || planet.unlocked);
+        }
+
+        function getCanvasPoint(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+
+        function isInteractiveTarget(target) {
+            const blockedSelector = [
+                'a',
+                'button',
+                'img',
+                '.photo-frame',
+                '.ui-panel',
+                '#photo-modal',
+                '#log-drawer',
+                '#log-drawer-backdrop',
+                '#planet-hud',
+                '#anomaly-panel',
+                '#reset-overlay'
+            ].join(', ');
+
+            return Boolean(target?.closest(blockedSelector));
+        }
+
+        function getOrbitBaseAngle(planet, timeMs) {
+            const visualSpeedMultiplier = 2;
+            return (2 * Math.PI * (timeMs * visualSpeedMultiplier)) / (planet.period * 86400000);
+        }
+
+        function getRealtimeOrbitState(planet, timeMs) {
+            if (!planet.orbit) return null;
+
+            const daysSinceEpoch = getJulianDay(timeMs) - 2451543.5;
+            const ascendingNode = degToRad(planet.orbit.N[0] + (planet.orbit.N[1] * daysSinceEpoch));
+            const inclination = degToRad(planet.orbit.i[0] + (planet.orbit.i[1] * daysSinceEpoch));
+            const perihelion = degToRad(planet.orbit.w[0] + (planet.orbit.w[1] * daysSinceEpoch));
+            const semiMajorAxis = planet.orbit.a[0] + (planet.orbit.a[1] * daysSinceEpoch);
+            const eccentricity = planet.orbit.e[0] + (planet.orbit.e[1] * daysSinceEpoch);
+            const meanAnomaly = normalizeAngle(degToRad(planet.orbit.M[0] + (planet.orbit.M[1] * daysSinceEpoch)));
+            const eccentricAnomaly = solveEccentricAnomaly(meanAnomaly, eccentricity);
+
+            const xv = semiMajorAxis * (Math.cos(eccentricAnomaly) - eccentricity);
+            const yv = semiMajorAxis * (Math.sqrt(1 - eccentricity * eccentricity) * Math.sin(eccentricAnomaly));
+            const trueAnomaly = Math.atan2(yv, xv);
+            const heliocentricDistance = Math.hypot(xv, yv);
+            const argument = trueAnomaly + perihelion;
+
+            const xh = heliocentricDistance * ((Math.cos(ascendingNode) * Math.cos(argument)) - (Math.sin(ascendingNode) * Math.sin(argument) * Math.cos(inclination)));
+            const yh = heliocentricDistance * ((Math.sin(ascendingNode) * Math.cos(argument)) + (Math.cos(ascendingNode) * Math.sin(argument) * Math.cos(inclination)));
+
+            return {
+                angle: Math.atan2(yh, xh),
+                radiusScale: heliocentricDistance / semiMajorAxis
+            };
+        }
+
+        function getPlanetOrbitPlacement(planet, timeMs) {
+            if (planet.orbit && !planet.orbitOverride) {
+                const realtimeOrbitState = getRealtimeOrbitState(planet, timeMs);
+                if (realtimeOrbitState) {
+                    return {
+                        angle: realtimeOrbitState.angle,
+                        radius: planet.defaultDist * realtimeOrbitState.radiusScale
+                    };
+                }
+            }
+
+            return {
+                angle: getOrbitBaseAngle(planet, timeMs) + planet.phase,
+                radius: planet.dist
+            };
+        }
+
+        function randomizeBarryPlanetPosition() {
+            const barryPlanet = planets.find(planet => planet.randomUpperRight);
+            if (!barryPlanet) return;
+
+            const now = Date.now();
+            const targetAngle = (-1.35 + Math.random() * 0.72);
+
+            barryPlanet.dist = 240 + Math.random() * 140;
+            barryPlanet.defaultDist = barryPlanet.dist;
+            barryPlanet.phase = targetAngle - getOrbitBaseAngle(barryPlanet, now);
+        }
+
+        function getRenderTime(now) {
+            if (!resetState.active) return now;
+            const elapsed = now - resetState.startTime;
+            return resetState.rewindOriginTime - elapsed * 28;
+        }
+
+        function getSupernovaDisplacement(planet, x, y, now) {
+            if (!supernovaState.active) {
+                return { x: 0, y: 0 };
+            }
+
+            const elapsed = now - supernovaState.startTime;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const distance = Math.hypot(dx, dy) || 1;
+            const maxBlast = 120 + planet.dist * 0.42;
+
+            let magnitude = 0;
+            if (elapsed < 1600) {
+                magnitude = easeOutCubic(elapsed / 1600) * maxBlast;
+            } else if (elapsed < 3200) {
+                magnitude = maxBlast;
+            } else {
+                const settleProgress = clamp((elapsed - 3200) / (SUPERNOVA_DURATION_MS - 3200), 0, 1);
+                magnitude = (1 - easeInOutCubic(settleProgress)) * maxBlast;
+            }
+
+            const turbulence = elapsed < 3200 ? Math.sin((elapsed / 90) + planet.dist) * 6 : 0;
+            return {
+                x: (dx / distance) * magnitude + (dy / distance) * turbulence * 0.2,
+                y: (dy / distance) * magnitude - (dx / distance) * turbulence * 0.2
+            };
+        }
+
+        function showStatus(message, duration = 1800) {
+            statusToast.textContent = message;
+            statusToast.classList.add('active');
+            clearTimeout(statusToastTimer);
+            statusToastTimer = setTimeout(() => {
+                statusToast.classList.remove('active');
+            }, duration);
+        }
+
+        function triggerFlash() {
+            screenFlash.classList.add('active');
+            setTimeout(() => screenFlash.classList.remove('active'), 220);
+        }
+
+        function runMissionFlyby() {
+            if (!flybyShip) return;
+
+            flybyShip.classList.remove('active');
+            void flybyShip.offsetWidth;
+            flybyShip.style.top = `${14 + Math.random() * 48}vh`;
+            flybyShip.classList.add('active');
+            showStatus('DEBUG PORT OPEN // FLYBY CONFIRMED', 1400);
+
+            setTimeout(() => {
+                flybyShip.classList.remove('active');
+            }, 2850);
+        }
+
+        function printConsoleMissionPort() {
+            if (consoleMissionPrinted) return;
+            consoleMissionPrinted = true;
+
+            const shipArt = [
+                '          /\\\\',
+                '     ____/  \\\\___',
+                '     \\\\__  STAR_/',
+                '        /_/_\\\\'
+            ].join('\n');
+
+            console.log(shipArt);
+            console.log('You found the debug port. Welcome, fellow explorer.');
+            console.log('Type mission.fly() to launch a flyby.');
+            console.log('Type mission.help() to print this again.');
+        }
+
+        function replayConsoleMissionPort() {
+            consoleMissionPrinted = false;
+            printConsoleMissionPort();
+        }
+
+        function bootConsoleMissionPort() {
+            if (consoleMissionBooted) return;
+            consoleMissionBooted = true;
+
+            globalThis.mission = {
+                fly: runMissionFlyby,
+                help: replayConsoleMissionPort
+            };
+        }
+
+        function clearSupernovaTimers() {
+            supernovaState.timeoutIds.forEach(timeoutId => clearTimeout(timeoutId));
+            supernovaState.timeoutIds = [];
+        }
+
+        function finishSupernova() {
+            clearSupernovaTimers();
+            supernovaState.active = false;
+            document.body.classList.remove('anomaly-theme');
+            anomalyPanel.classList.remove('active');
+            setUiHidden(supernovaState.restoreUiHidden);
+        }
+
+        function triggerSupernova() {
+            if (supernovaState.active || resetState.active) return;
+
+            closeModal();
+            closeLogDrawer();
+            clearSupernovaTimers();
+
+            supernovaState.active = true;
+            supernovaState.startTime = Date.now();
+            supernovaState.restoreUiHidden = isUiHidden;
+            sunClickTimestamps = [];
+
+            setUiHidden(true);
+            escHint.style.opacity = '0';
+            triggerFlash();
+            showStatus('SUPERNOVA PROTOCOL // AFTERGLOW ARCHIVE', 2200);
+
+            supernovaState.timeoutIds.push(setTimeout(() => {
+                document.body.classList.add('anomaly-theme');
+                anomalyPanel.classList.add('active');
+            }, 1200));
+
+            supernovaState.timeoutIds.push(setTimeout(() => {
+                anomalyPanel.classList.remove('active');
+                document.body.classList.remove('anomaly-theme');
+            }, 5000));
+
+            supernovaState.timeoutIds.push(setTimeout(() => {
+                finishSupernova();
+            }, SUPERNOVA_DURATION_MS));
+        }
+
+        function triggerResetSequence() {
+            if (resetState.active) return;
+
+            finishSupernova();
+            closeModal();
+            closeLogDrawer();
+            resetState.active = true;
+            resetState.startTime = Date.now();
+            resetState.rewindOriginTime = Date.now();
+            resetOverlay.classList.add('active');
+            setUiHidden(true);
+            escHint.style.opacity = '0';
+            showStatus('MISSION FAILED // REWINDING SIMULATION', 2400);
+
+            resetState.timeoutId = setTimeout(() => {
+                window.location.reload();
+            }, RESET_DURATION_MS);
+        }
+
+        function unlockBarryPlanet() {
+            const barryPlanet = planets.find(planet => planet.name === 'Barry Planet');
+            if (!barryPlanet || barryPlanet.unlocked) return;
+
+            barryPlanet.unlocked = true;
+            showStatus('BARRY PLANET DETECTED // UPPER-RIGHT ORBIT ONLINE', 2600);
+        }
+
+        function handleKonamiInput(key) {
+            const normalizedKey = key.length === 1 ? key.toLowerCase() : key;
+            const expectedKey = KONAMI_CODE[konamiIndex];
+
+            if (normalizedKey === expectedKey) {
+                konamiIndex += 1;
+                if (konamiIndex === KONAMI_CODE.length) {
+                    unlockBarryPlanet();
+                    konamiIndex = 0;
+                }
+                return;
+            }
+
+            konamiIndex = normalizedKey === KONAMI_CODE[0] ? 1 : 0;
+        }
+
+        function getPlanetAtPosition(x, y) {
+            const planetsByDepth = [...getVisiblePlanets()].reverse();
+            return planetsByDepth.find(planet => {
+                const hitRadius = Math.max(14, planet.currentRadius + 10);
+                return Math.hypot(x - planet.currentX, y - planet.currentY) <= hitRadius;
+            });
+        }
+
+        function isPointInSun(x, y) {
+            return Math.hypot(x - sunPosition.x, y - sunPosition.y) <= SUN_HIT_RADIUS;
+        }
+
+        function registerSunClick() {
+            const now = Date.now();
+            sunClickTimestamps = sunClickTimestamps.filter(timestamp => now - timestamp < SUN_CLICK_WINDOW_MS);
+            sunClickTimestamps.push(now);
+
+            if (sunClickTimestamps.length >= SUN_TRIGGER_CLICKS) {
+                triggerSupernova();
+                return;
+            }
+
+            showStatus(`SOLAR CORE RESONANCE // ${sunClickTimestamps.length}/${SUN_TRIGGER_CLICKS}`, 500);
+        }
+
         function init() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
             rebuildKuiperBelt();
+            randomizeBarryPlanetPosition();
             document.getElementById('uid').innerText = Math.random().toString(16).slice(2, 10).toUpperCase();
             tzEl.innerText = Intl.DateTimeFormat().resolvedOptions().timeZone.replace('_', ' ').toUpperCase();
         }
@@ -736,64 +1408,76 @@
             }, 400);
         }
 
-        function updateClock() {
-            const d = new Date();
+        function updateClock(timeMs = Date.now()) {
+            const d = new Date(timeMs);
             timeEl.innerText = d.toLocaleTimeString('en-GB', { hour12: false });
             dateEl.innerText = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
         }
 
-        function drawPlanet(p, timeMs) {
+        function drawPlanet(planet, timeMs, now) {
             const centerX = width / 2;
             const centerY = height / 2;
-            const visualSpeedMultiplier = 2; 
-            const angle = (2 * Math.PI * (timeMs * visualSpeedMultiplier)) / (p.period * 86400000); 
-            const epochOffset = (p.dist * 1234.56); 
-            const currentAngle = angle + epochOffset;
+            const orbitPlacement = getPlanetOrbitPlacement(planet, timeMs);
+            const currentAngle = orbitPlacement.angle;
+            const orbitRadius = orbitPlacement.radius;
+            const baseX = centerX + Math.cos(currentAngle) * orbitRadius;
+            const baseY = centerY + Math.sin(currentAngle) * orbitRadius;
+            const blastOffset = getSupernovaDisplacement(planet, baseX, baseY, now);
+            const x = baseX + blastOffset.x;
+            const y = baseY + blastOffset.y;
 
-            const x = centerX + Math.cos(currentAngle) * p.dist;
-            const y = centerY + Math.sin(currentAngle) * p.dist;
+            planet.currentX = x;
+            planet.currentY = y;
+            planet.currentRadius = planet.radius;
 
             ctx.beginPath();
-            ctx.arc(centerX, centerY, p.dist, 0, Math.PI * 2);
-            ctx.strokeStyle = "rgba(0, 243, 255, 0.04)";
+            ctx.arc(centerX, centerY, planet.defaultDist, 0, Math.PI * 2);
+            ctx.strokeStyle = document.body.classList.contains('anomaly-theme') ? "rgba(255, 191, 122, 0.08)" : "rgba(0, 243, 255, 0.04)";
             ctx.stroke();
 
             const dx = mouse.x - x;
             const dy = mouse.y - y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
+            const distanceToMouse = Math.sqrt(dx * dx + dy * dy);
             
-            if (dist < 20) {
-                activePlanet = { ...p, currentX: x, currentY: y };
+            if (distanceToMouse < 20) {
+                activePlanet = { ...planet, currentX: x, currentY: y };
                 ctx.beginPath();
-                ctx.arc(x, y, p.radius + 6, 0, Math.PI * 2);
-                ctx.strokeStyle = "rgba(0, 243, 255, 0.5)";
+                ctx.arc(x, y, planet.radius + 6, 0, Math.PI * 2);
+                ctx.strokeStyle = document.body.classList.contains('anomaly-theme') ? "rgba(255, 195, 113, 0.6)" : "rgba(0, 243, 255, 0.5)";
                 ctx.setLineDash([5, 5]);
                 ctx.stroke();
                 ctx.setLineDash([]);
             }
 
-            if(p.rings) {
+            if (planet.rings) {
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.rotate(currentAngle);
                 ctx.beginPath();
-                ctx.ellipse(0, 0, p.radius * 2.2, p.radius * 0.8, 0, 0, Math.PI * 2);
+                ctx.ellipse(0, 0, planet.radius * 2.2, planet.radius * 0.8, 0, 0, Math.PI * 2);
                 ctx.strokeStyle = "rgba(197, 171, 110, 0.3)";
                 ctx.stroke();
                 ctx.restore();
             }
 
+            if (planet.name === 'Barry Planet' && planet.unlocked) {
+                ctx.beginPath();
+                ctx.arc(x, y, planet.radius + 4, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(255, 138, 101, 0.35)";
+                ctx.stroke();
+            }
+
             ctx.beginPath();
-            ctx.arc(x, y, p.radius, 0, Math.PI * 2);
-            ctx.fillStyle = p.color;
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = p.color;
+            ctx.arc(x, y, planet.radius, 0, Math.PI * 2);
+            ctx.fillStyle = planet.color;
+            ctx.shadowBlur = planet.name === 'Barry Planet' ? 18 : 12;
+            ctx.shadowColor = planet.color;
             ctx.fill();
             ctx.shadowBlur = 0;
         }
 
         function updateHUD() {
-            if (isUiHidden) {
+            if (isUiHidden || supernovaState.active || resetState.active) {
                 planetHud.style.opacity = '0';
                 planetHud.style.display = 'none';
                 return;
@@ -823,36 +1507,74 @@
             }
         }
 
-        function drawSun() {
+        function drawSun(now) {
             const centerX = width / 2;
             const centerY = height / 2;
+            sunPosition.x = centerX;
+            sunPosition.y = centerY;
+
+            let radius = SUN_RADIUS;
+            let shadowBlur = 50;
+            let fillStyle = "#fff";
+
+            if (supernovaState.active) {
+                const elapsed = now - supernovaState.startTime;
+                radius = elapsed < 1000 ? SUN_RADIUS + easeOutCubic(elapsed / 1000) * 18 : 22 + Math.sin(elapsed * 0.02) * 3;
+                shadowBlur = 90;
+                fillStyle = "rgba(255, 232, 201, 1)";
+
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius + 14 + Math.sin(elapsed * 0.015) * 6, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(255, 181, 126, 0.22)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.lineWidth = 1;
+            }
+
             ctx.beginPath();
-            ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
-            ctx.fillStyle = "#fff";
-            ctx.shadowBlur = 50;
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fillStyle = fillStyle;
+            ctx.shadowBlur = shadowBlur;
             ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
             ctx.fill();
             ctx.shadowBlur = 0;
         }
 
-        function drawKuiper(timeMs) {
-            ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
-            kuiperBelt.forEach(p => {
-                const curAngle = p.angle + (timeMs * p.speed * 0.001);
-                const x = width / 2 + Math.cos(curAngle) * p.dist;
-                const y = height / 2 + Math.sin(curAngle) * p.dist;
-                ctx.fillRect(x, y, p.size, p.size);
+        function drawKuiper(now, timeMs) {
+            ctx.fillStyle = document.body.classList.contains('anomaly-theme') ? "rgba(255, 223, 179, 0.28)" : "rgba(255, 255, 255, 0.25)";
+            kuiperBelt.forEach(particle => {
+                const curAngle = particle.angle + (timeMs * particle.speed * 0.001);
+
+                let extraDistance = 0;
+                if (supernovaState.active) {
+                    const elapsed = now - supernovaState.startTime;
+                    const maxExtraDistance = 90;
+                    if (elapsed < 1600) {
+                        extraDistance = easeOutCubic(elapsed / 1600) * maxExtraDistance;
+                    } else if (elapsed < 3200) {
+                        extraDistance = maxExtraDistance;
+                    } else {
+                        const settleProgress = clamp((elapsed - 3200) / (SUPERNOVA_DURATION_MS - 3200), 0, 1);
+                        extraDistance = (1 - easeInOutCubic(settleProgress)) * maxExtraDistance;
+                    }
+                }
+
+                const radialDistance = particle.dist + extraDistance;
+                const x = width / 2 + Math.cos(curAngle) * radialDistance;
+                const y = height / 2 + Math.sin(curAngle) * radialDistance;
+                ctx.fillRect(x, y, particle.size, particle.size);
             });
         }
 
         function animate() {
             const now = Date.now();
+            const renderTime = getRenderTime(now);
             ctx.clearRect(0, 0, width, height);
-            updateClock();
-            drawSun();
+            updateClock(renderTime);
+            drawSun(now);
             activePlanet = null;
-            planets.forEach(p => drawPlanet(p, now));
-            drawKuiper(now);
+            getVisiblePlanets().forEach(planet => drawPlanet(planet, renderTime, now));
+            drawKuiper(now, renderTime);
             updateHUD();
             animationFrameId = requestAnimationFrame(animate);
         }
@@ -875,28 +1597,13 @@
         function setUiHidden(nextHiddenState) {
             isUiHidden = nextHiddenState;
             document.querySelectorAll('.ui-panel').forEach(panel => panel.classList.toggle('ui-hidden', isUiHidden));
+            escHint.style.opacity = isUiHidden ? '0.3' : '0';
 
             if (isUiHidden) {
                 closeLogDrawer();
                 planetHud.style.opacity = '0';
                 planetHud.style.display = 'none';
             }
-        }
-
-        function isBlankAreaClick(target) {
-            const blockedSelector = [
-                'a',
-                'button',
-                'img',
-                '.photo-frame',
-                '.ui-panel',
-                '#photo-modal',
-                '#log-drawer',
-                '#log-drawer-backdrop',
-                '#planet-hud'
-            ].join(', ');
-
-            return !target.closest(blockedSelector);
         }
 
         // Event Listeners
@@ -910,25 +1617,112 @@
             startAnimation();
         });
 
-        // 点击页面空白处切换沉浸模式
-        document.addEventListener('click', (e) => {
-            if (!isBlankAreaClick(e.target)) return;
-            if (modal.style.display === 'flex') return;
-            setUiHidden(!isUiHidden);
-        });
-
         window.addEventListener('mousemove', e => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
         });
 
         window.addEventListener('keydown', (e) => {
+            handleKonamiInput(e.key);
+
             if (e.key === 'Escape') {
                 if (modal.style.display === 'flex') {
                     closeModal();
-                } else {
+                } else if (!supernovaState.active && !resetState.active) {
                     setUiHidden(!isUiHidden);
                 }
+            }
+        });
+
+        document.addEventListener('pointerdown', (e) => {
+            if (supernovaState.active || resetState.active) return;
+            if (isInteractiveTarget(e.target)) return;
+
+            const point = getCanvasPoint(e);
+            const hitPlanet = getPlanetAtPosition(point.x, point.y);
+
+            if (hitPlanet?.draggable) {
+                draggingPlanet = hitPlanet;
+                draggingPointerId = e.pointerId;
+                draggingPlanet.orbitOverride = true;
+                suppressCanvasClick = true;
+            }
+        });
+
+        document.addEventListener('pointermove', (e) => {
+            const point = getCanvasPoint(e);
+            mouse.x = point.x;
+            mouse.y = point.y;
+
+            if (!draggingPlanet || draggingPointerId !== e.pointerId) return;
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const dx = point.x - centerX;
+            const dy = point.y - centerY;
+            const orbitDistance = clamp(Math.hypot(dx, dy), 6, Math.min(width, height) * 0.44);
+            const timeAngle = getOrbitBaseAngle(draggingPlanet, getRenderTime(Date.now()));
+
+            draggingPlanet.dist = orbitDistance;
+            draggingPlanet.phase = Math.atan2(dy, dx) - timeAngle;
+        });
+
+        function releaseDrag(event) {
+            if (!draggingPlanet || draggingPointerId !== event.pointerId) return;
+
+            const point = getCanvasPoint(event);
+            const distanceToSun = Math.hypot(point.x - width / 2, point.y - height / 2);
+
+            suppressCanvasClick = true;
+
+            if (distanceToSun <= SUN_RADIUS + 10) {
+                draggingPlanet = null;
+                draggingPointerId = null;
+                triggerResetSequence();
+                return;
+            }
+
+            showStatus('EARTH ORBIT UPDATED', 1200);
+            draggingPlanet = null;
+            draggingPointerId = null;
+        }
+
+        document.addEventListener('pointerup', releaseDrag);
+        document.addEventListener('pointercancel', releaseDrag);
+
+        document.addEventListener('click', (e) => {
+            if (supernovaState.active || resetState.active || modal.style.display === 'flex') return;
+            if (isInteractiveTarget(e.target)) return;
+
+            if (suppressCanvasClick) {
+                suppressCanvasClick = false;
+                return;
+            }
+
+            const point = getCanvasPoint(e);
+
+            if (isPointInSun(point.x, point.y)) {
+                registerSunClick();
+                return;
+            }
+
+            if (getPlanetAtPosition(point.x, point.y)) {
+                return;
+            }
+
+            setUiHidden(!isUiHidden);
+        });
+
+        document.addEventListener('dblclick', (e) => {
+            if (isInteractiveTarget(e.target)) return;
+            if (isPointInSun(getCanvasPoint(e).x, getCanvasPoint(e).y)) {
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && resetState.active) {
+                e.preventDefault();
             }
         });
 
@@ -948,6 +1742,8 @@
             touchStartX = e.touches[0].clientX;
         });
         canvas.addEventListener('touchend', (e) => {
+            if (supernovaState.active || resetState.active) return;
+
             const touchEndX = e.changedTouches[0].clientX;
             const diff = touchStartX - touchEndX;
             if (Math.abs(diff) > 50) {
@@ -957,7 +1753,10 @@
 
         // Modal Listeners
         photoFrames.forEach((frame, index) => {
-            frame.addEventListener('click', () => openModal(index));
+            frame.addEventListener('click', () => {
+                if (supernovaState.active || resetState.active) return;
+                openModal(index);
+            });
         });
 
         modalPrev.addEventListener('click', (e) => {
@@ -979,6 +1778,7 @@
         const logDrawerClose = document.getElementById('log-drawer-close');
 
         function openLogDrawer() {
+            if (supernovaState.active || resetState.active) return;
             logDrawer.classList.add('open');
             logDrawerBackdrop.classList.add('active');
         }
@@ -1002,6 +1802,14 @@
                 closeLogDrawer();
             }
         });
+
+        showStatus('EARTH IS DRAGGABLE // TAP SUN 5X // KONAMI ENABLED', 2600);
+        bootConsoleMissionPort();
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                printConsoleMissionPort();
+            }, 500);
+        }, { once: true });
 
         init();
         startAnimation();
